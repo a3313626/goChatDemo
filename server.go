@@ -60,15 +60,12 @@ func (this *Server) HandLer(conn net.Conn) {
 	//先抛出个提示
 	//fmt.Println("链接创建成功")
 
-	user := NewUser(conn)
+	user := NewUser(conn, this)
 
-	//用户上线业务处理
-	this.mapLock.Lock()
-	this.OnlineMap[user.Name] = user
-	this.mapLock.Unlock()
+	user.Online()
 
 	//这里做一个用户上线通知
-	this.broadCast(user, "已上线")
+	
 
 	//这里监听用户发送的消息
 	go func() {
@@ -81,9 +78,9 @@ func (this *Server) HandLer(conn net.Conn) {
 			n, err := conn.Read(buf)
 			//fmt.Println(string(buf), n, err, "看看这个是什么")
 
-			//=0的时候就是退出,如果是直接回车也是有长度1的,因为回车也是一个支付
+			//=0的时候就是退出,如果是直接回车也是有长度1的,因为回车也是一个字符
 			if n == 0 {
-				this.broadCast(user, "已下线")
+				user.OffOnline()
 				return
 			}
 
