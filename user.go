@@ -2,6 +2,7 @@ package main
 
 import (
 	"net"
+	"strings"
 )
 
 //这里要做用户上线功能,所以这里定义个用户的结构体
@@ -66,8 +67,24 @@ func (this *User) FindOnlineUser() {
 	for _, val := range this.Server.OnlineMap {
 		msg = msg + val.Name + "[" + val.Addr + "]\n"
 	}
-	this.SendAllMessage(msg)
+	this.SendMyMessage(msg)
 
+}
+
+//改名
+func (this *User) rename(name string) {
+	this.Server.mapLock.Lock()
+	delete(this.Server.OnlineMap, this.Name)
+	this.Name = name
+	this.Server.OnlineMap[this.Name] = this
+	this.Server.mapLock.Unlock()
+
+	this.SendMyMessage("您的昵称已改为:" + name)
+}
+
+//给自己发送消息
+func (this *User) SendMyMessage(msg string) {
+	this.conn.Write([]byte(msg + "\n"))
 }
 
 //用户广播消息方法
@@ -75,8 +92,13 @@ func (this *User) SendAllMessage(msg string) {
 
 	if len(msg) == 3 && msg == "who" {
 		this.FindOnlineUser()
-	} else {
-		this.Server.broadCast(this, msg)
+		return
+	} else if len(msg) > 7 && strings.Split(msg, "|")[0] == "rename" {
+		//这里的命令格式是rename|张三
+		this.rename(strings.Split(msg, "|")[1])
+		return
 	}
+
+	this.Server.broadCast(this, msg)
 
 }
