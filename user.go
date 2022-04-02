@@ -73,6 +73,13 @@ func (this *User) FindOnlineUser() {
 
 //改名
 func (this *User) rename(name string) {
+
+	//检查昵称是否存在
+	if _, ok := this.Server.OnlineMap[name]; ok == true {
+		this.SendMyMessage("该昵称已存在,请更换昵称")
+		return
+	}
+
 	this.Server.mapLock.Lock()
 	delete(this.Server.OnlineMap, this.Name)
 	this.Name = name
@@ -93,7 +100,7 @@ func (this *User) SendAllMessage(msg string) {
 	if len(msg) == 3 && msg == "who" {
 		this.FindOnlineUser()
 		return
-	} else if len(msg) > 7 && strings.Split(msg, "|")[0] == "rename" {
+	} else if len(msg) > 7 && msg[:7] == "rename|" {
 		//这里的命令格式是rename|张三
 		this.rename(strings.Split(msg, "|")[1])
 		return
