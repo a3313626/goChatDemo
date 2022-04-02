@@ -1,6 +1,8 @@
 package main
 
-import "net"
+import (
+	"net"
+)
 
 //这里要做用户上线功能,所以这里定义个用户的结构体
 type User struct {
@@ -58,7 +60,23 @@ func (this *User) OffOnline() {
 	this.SendAllMessage("已下线")
 }
 
+//查看当前在线用户
+func (this *User) FindOnlineUser() {
+	msg := "以下为当前在线用户:\n"
+	for _, val := range this.Server.OnlineMap {
+		msg = msg + val.Name + "[" + val.Addr + "]\n"
+	}
+	this.SendAllMessage(msg)
+
+}
+
 //用户广播消息方法
 func (this *User) SendAllMessage(msg string) {
-	this.Server.broadCast(this, msg)
+
+	if len(msg) == 3 && msg == "who" {
+		this.FindOnlineUser()
+	} else {
+		this.Server.broadCast(this, msg)
+	}
+
 }

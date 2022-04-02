@@ -65,7 +65,6 @@ func (this *Server) HandLer(conn net.Conn) {
 	user.Online()
 
 	//这里做一个用户上线通知
-	
 
 	//这里监听用户发送的消息
 	go func() {
@@ -90,7 +89,7 @@ func (this *Server) HandLer(conn net.Conn) {
 
 			//提取用户消息(去除\n)
 			msg := string(buf[:n-1])
-			this.broadCast(user, msg)
+			user.SendAllMessage(msg)
 		}
 
 	}()
