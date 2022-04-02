@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"io"
 	"net"
 	"sync"
 )
@@ -68,6 +69,34 @@ func (this *Server) HandLer(conn net.Conn) {
 
 	//这里做一个用户上线通知
 	this.broadCast(user, "已上线")
+
+	//这里监听用户发送的消息
+	go func() {
+		buf := make([]byte, 4096) //创建一个切片
+
+		//fmt.Println(string(buf), "看看这个是什么"),这里是空的
+
+		for {
+			//是conn.Read(buf)的长度
+			n, err := conn.Read(buf)
+			//fmt.Println(string(buf), n, err, "看看这个是什么")
+
+			//=0的时候就是退出,如果是直接回车也是有长度1的,因为回车也是一个支付
+			if n == 0 {
+				this.broadCast(user, "已下线")
+				return
+			}
+
+			if err != nil && err != io.EOF {
+				fmt.Println("读取用户消息错误 err:", err)
+			}
+
+			//提取用户消息(去除\n)
+			msg := string(buf[:n-1])
+			this.broadCast(user, msg)
+		}
+
+	}()
 
 	//阻塞下
 	select {}
