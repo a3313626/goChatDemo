@@ -73,7 +73,55 @@ func (client Client) PublicChat() {
 
 }
 
+//查询当前在线用户
+func (client *Client) FindOnlineUsers() {
+	sendMsg := "who\n"
+	_, err := client.conn.Write([]byte(sendMsg))
+	if err != nil {
+		fmt.Println("查询在线用户是爱,请重试")
+	}
+}
 
+//私聊逻辑
+func (client Client) PrivateChat() {
+	var remoteName string
+	var msg string
+
+	client.FindOnlineUsers()
+
+	fmt.Println(">>>>请输入聊天对象[用户名] , 输入exit退出:")
+	fmt.Scanln(&remoteName)
+
+	for remoteName != "exit" {
+		fmt.Println(">>>>请输入聊天内容 , 输入exit退出:")
+		fmt.Scanln(&msg)
+
+		for msg != "exit" {
+			//防止发送空消息
+			if len(msg) != 0 {
+				sendMsg := "toUser|" + remoteName + "|" + client.Name + "\n"
+				_, err := client.conn.Write([]byte(sendMsg))
+				if err != nil {
+					fmt.Println("发送失败,请重试")
+					break
+				}
+
+			}
+
+			msg := ""
+			fmt.Println(">>>>请输入发送内容,输入exit取消发送:")
+			fmt.Scanln(&msg)
+
+		}
+
+		//输入完毕后重新输入,然后再次聊天
+		client.FindOnlineUsers()
+		fmt.Println(">>>>请输入聊天对象[用户名] , 输入exit退出:")
+		fmt.Scanln(&remoteName)
+
+	}
+
+}
 
 //改名逻辑
 func (client Client) UpdateName() bool {
