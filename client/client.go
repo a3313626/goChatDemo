@@ -149,7 +149,7 @@ func (client *Client) Run() {
 			client.PublicChat()
 			break
 		case 2:
-			fmt.Println("私聊模式")
+			client.PrivateChat()
 			break
 		case 3:
 			client.UpdateName()
