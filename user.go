@@ -67,7 +67,7 @@ func (this *User) FindOnlineUser() {
 	for _, val := range this.Server.OnlineMap {
 		msg = msg + val.Name + "[" + val.Addr + "]\n"
 	}
-	this.SendMyMessage(msg)
+	this.SendThisMessage(msg)
 
 }
 
@@ -76,7 +76,7 @@ func (this *User) rename(name string) {
 
 	//检查昵称是否存在
 	if _, ok := this.Server.OnlineMap[name]; ok == true {
-		this.SendMyMessage("该昵称已存在,请更换昵称")
+		this.SendThisMessage("该昵称已存在,请更换昵称")
 		return
 	}
 
@@ -86,12 +86,40 @@ func (this *User) rename(name string) {
 	this.Server.OnlineMap[this.Name] = this
 	this.Server.mapLock.Unlock()
 
-	this.SendMyMessage("您的昵称已改为:" + name)
+	this.SendThisMessage("您的昵称已改为:" + name)
 }
 
 //给自己发送消息
-func (this *User) SendMyMessage(msg string) {
+func (this *User) SendThisMessage(msg string) {
 	this.conn.Write([]byte(msg + "\n"))
+}
+
+//私聊
+func (this *User) toUserMsg(msg string) {
+	//先转换格式
+	msgArr := strings.Split(msg, "|")
+	if msgArr[1] == "" {
+		this.SendThisMessage("您输入的对方昵称不正确,请重新输入")
+		return
+	}
+
+	if msgArr[2] == "" {
+		this.SendThisMessage("消息不能为空")
+		return
+	}
+
+	//找有没有这用户
+	toUser, ok := this.Server.OnlineMap[msgArr[1]]
+
+	//if toUser, ok := this.Server.OnlineMap[msgArr[1]]; !ok {} 这样写是不行的,会导致if执行后取不到值
+
+	if !ok {
+		this.SendThisMessage("该用户未上线,无法私聊")
+		return
+	}
+
+	toUser.SendThisMessage(this.Name + "对您说:" + msgArr[2])
+
 }
 
 //用户广播消息方法
@@ -103,6 +131,10 @@ func (this *User) SendAllMessage(msg string) {
 	} else if len(msg) > 7 && msg[:7] == "rename|" {
 		//这里的命令格式是rename|张三
 		this.rename(strings.Split(msg, "|")[1])
+		return
+	} else if len(msg) > 7 && msg[:7] == "toUser|" {
+		//这里的命令格式是toUser|张三|信息
+		this.toUserMsg(msg)
 		return
 	}
 
