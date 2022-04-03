@@ -1,3 +1,12 @@
+```
+编译示例:
+ go build -o server main.go server.go user.go
+```
+
+
+
+
+
 ### V8.1版本
 
 - 完成了私聊系统
