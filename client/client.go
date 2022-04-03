@@ -47,6 +47,34 @@ func (client Client) menu() bool {
 
 }
 
+//公聊逻辑
+func (client Client) PublicChat() {
+	var msg string
+	fmt.Println(">>>>请输入发送内容,输入exit取消发送:")
+	fmt.Scanln(&msg)
+
+	for msg != "exit" {
+		//防止发送空消息
+		if len(msg) != 0 {
+			sendMsg := client.Name + "\n"
+			_, err := client.conn.Write([]byte(sendMsg))
+			if err != nil {
+				fmt.Println("发送失败,请重试")
+				break
+			}
+
+		}
+
+		msg := ""
+		fmt.Println(">>>>请输入发送内容,输入exit取消发送:")
+		fmt.Scanln(&msg)
+
+	}
+
+}
+
+
+
 //改名逻辑
 func (client Client) UpdateName() bool {
 	fmt.Println(">>>>请输入用户名:")
@@ -70,7 +98,7 @@ func (client *Client) Run() {
 
 		switch client.flag {
 		case 1:
-			fmt.Println("公聊模式")
+			client.PublicChat()
 			break
 		case 2:
 			fmt.Println("私聊模式")
